@@ -46,7 +46,7 @@ function Home() {
               <div className="text-6xl mb-4">💪</div>
               <h2 className="text-4xl font-bold text-amber-400 mb-3">Gimnasio</h2>
               <p className="text-amber-100/70 text-lg leading-relaxed">
-                Entrena como un guerrero. Accede a nuestras instalaciones premium y programas de entrenamiento.
+                Entrena como un guerrero. Accede a nuestras instalaciones premium.
               </p>
             </div>
 
