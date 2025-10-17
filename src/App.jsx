@@ -1,35 +1,44 @@
 import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import Home from './Components/Home'
+import './index.css'
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [currentView, setCurrentView] = useState('home')
 
-  return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+  const renderView = () => {
+    switch(currentView) {
+      case 'home':
+        return <Home onSelectGym={() => setCurrentView('gym')} onSelectCafe={() => setCurrentView('cafe')} />
+      case 'gym':
+        return <div className="min-h-screen bg-black text-white flex items-center justify-center">
+          <div className="text-center">
+            <h1 className="text-4xl mb-4">Gimnasio (Próximamente)</h1>
+            <button 
+              onClick={() => setCurrentView('home')}
+              className="px-6 py-3 bg-amber-600 text-black rounded-lg hover:bg-amber-500 transition"
+            >
+              Volver al Home
+            </button>
+          </div>
+        </div>
+      case 'cafe':
+        return <div className="min-h-screen bg-black text-white flex items-center justify-center">
+          <div className="text-center">
+            <h1 className="text-4xl mb-4">Café Bar (Próximamente)</h1>
+            <button 
+              onClick={() => setCurrentView('home')}
+              className="px-6 py-3 bg-amber-600 text-black rounded-lg hover:bg-amber-500 transition"
+            >
+              Volver al Home
+            </button>
+          </div>
+        </div>
+      default:
+        return <Home onSelectGym={() => setCurrentView('gym')} onSelectCafe={() => setCurrentView('cafe')} />
+    }
+  }
+
+  return <>{renderView()}</>
 }
 
 export default App
