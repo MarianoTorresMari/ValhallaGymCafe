@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-function Home() {
+function Home({ onSelectGym, onSelectCafe }) {
   const [hoveredCard, setHoveredCard] = useState(null);
 
   return (
@@ -9,7 +9,6 @@ function Home() {
       <div className="text-center mb-12 animate-fade-in">
         <div className="mb-6 flex justify-center">
           <div className="w-32 h-32 bg-amber-800/20 rounded-full flex items-center justify-center border-4 border-amber-700/50 shadow-2xl shadow-amber-900/50">
-            {/* Aquí irá tu logo - reemplaza con: <img src="/src/assets/logo.png" alt="Valhalla Logo" className="w-24 h-24 object-contain" /> */}
             <div className="text-6xl">🏛️</div>
           </div>
         </div>
@@ -28,6 +27,7 @@ function Home() {
         <div
           onMouseEnter={() => setHoveredCard('gym')}
           onMouseLeave={() => setHoveredCard(null)}
+          onClick={onSelectGym}
           className={`relative group cursor-pointer transition-all duration-500 transform ${
             hoveredCard === 'gym' ? 'scale-105 -translate-y-2' : 'scale-100'
           }`}
@@ -35,7 +35,6 @@ function Home() {
           <div className="absolute inset-0 bg-gradient-to-br from-amber-600 to-orange-700 rounded-2xl blur-xl opacity-50 group-hover:opacity-75 transition-opacity duration-500"></div>
           
           <div className="relative bg-gradient-to-br from-zinc-900 to-black border-2 border-amber-700/50 rounded-2xl p-8 h-80 flex flex-col justify-between overflow-hidden shadow-2xl">
-            {/* Patrón de fondo */}
             <div className="absolute inset-0 opacity-5">
               <div className="absolute inset-0" style={{
                 backgroundImage: 'repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(251, 191, 36, 0.1) 10px, rgba(251, 191, 36, 0.1) 20px)'
@@ -58,7 +57,6 @@ function Home() {
               {hoveredCard === 'gym' ? 'Ingresar al Gimnasio →' : 'Seleccionar'}
             </button>
 
-            {/* Efecto de brillo */}
             <div className={`absolute inset-0 bg-gradient-to-r from-transparent via-amber-400/10 to-transparent transform -skew-x-12 transition-all duration-700 ${
               hoveredCard === 'gym' ? 'translate-x-full' : '-translate-x-full'
             }`}></div>
@@ -69,6 +67,7 @@ function Home() {
         <div
           onMouseEnter={() => setHoveredCard('cafe')}
           onMouseLeave={() => setHoveredCard(null)}
+          onClick={onSelectCafe}
           className={`relative group cursor-pointer transition-all duration-500 transform ${
             hoveredCard === 'cafe' ? 'scale-105 -translate-y-2' : 'scale-100'
           }`}
@@ -76,7 +75,6 @@ function Home() {
           <div className="absolute inset-0 bg-gradient-to-br from-amber-800 to-yellow-900 rounded-2xl blur-xl opacity-50 group-hover:opacity-75 transition-opacity duration-500"></div>
           
           <div className="relative bg-gradient-to-br from-zinc-900 to-black border-2 border-amber-700/50 rounded-2xl p-8 h-80 flex flex-col justify-between overflow-hidden shadow-2xl">
-            {/* Patrón de fondo */}
             <div className="absolute inset-0 opacity-5">
               <div className="absolute inset-0" style={{
                 backgroundImage: 'repeating-linear-gradient(-45deg, transparent, transparent 10px, rgba(251, 191, 36, 0.1) 10px, rgba(251, 191, 36, 0.1) 20px)'
@@ -99,7 +97,6 @@ function Home() {
               {hoveredCard === 'cafe' ? 'Ingresar al Café →' : 'Seleccionar'}
             </button>
 
-            {/* Efecto de brillo */}
             <div className={`absolute inset-0 bg-gradient-to-r from-transparent via-amber-400/10 to-transparent transform -skew-x-12 transition-all duration-700 ${
               hoveredCard === 'cafe' ? 'translate-x-full' : '-translate-x-full'
             }`}></div>
