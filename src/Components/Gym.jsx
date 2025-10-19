@@ -247,7 +247,8 @@ const Gym = ({ onBack }) => {
               <div className="grid md:grid-cols-2 gap-4">
                 {[
                   "WiFi de alta velocidad",
-                  "Descuento para festejar tu cumple",
+                  "Estacionamiento gratuito",
+                  "Descuento en Valhalla Café",
                   "App móvil con seguimiento",
                   "Eventos y competencias mensuales",
                   "Asesoría inicial gratuita"
@@ -377,6 +378,13 @@ const Gym = ({ onBack }) => {
             <span className="font-bold">Plan {plans.find(p => p.id === selectedPlan)?.name} seleccionado</span>
             <button className="bg-black text-amber-400 px-6 py-2 rounded-full font-bold hover:bg-zinc-900 transition">
               Continuar
+            </button>
+            <button 
+              onClick={() => setSelectedPlan(null)}
+              className="bg-black/50 hover:bg-black text-amber-400 p-2 rounded-full transition-all hover:scale-110"
+              title="Deseleccionar plan"
+            >
+              <X className="w-5 h-5" />
             </button>
           </div>
         </div>
