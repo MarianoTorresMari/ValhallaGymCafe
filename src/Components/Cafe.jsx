@@ -15,6 +15,7 @@ const Cafe = ({ onBack }) => {
   const [tempNameInput, setTempNameInput] = useState('');
   const [tableInfo, setTableInfo] = useState(null);
   const [showJoinOptions, setShowJoinOptions] = useState(false);
+  const [tableDeactivated, setTableDeactivated] = useState(false);
   
   // Estados para pago
   const [showPaymentModal, setShowPaymentModal] = useState(false);
@@ -196,6 +197,29 @@ const Cafe = ({ onBack }) => {
       }
     };
     loadLastNotification();
+  }, [tableNumber, sessionId]);
+  // Verificar estado de la mesa periódicamente
+  useEffect(() => {
+    if (!tableNumber || !sessionId) return;
+
+    const checkTableStatus = async () => {
+      try {
+        const result = await window.storage.get(`table_${tableNumber}_info`, true);
+        if (result && result.value) {
+          const tableData = JSON.parse(result.value);
+          if (tableData.status === 'deactivated') {
+            setTableDeactivated(true);
+          }
+        }
+      } catch (error) {
+        // Mesa fue eliminada
+        setTableDeactivated(true);
+      }
+    };
+
+    // Verificar cada 5 segundos
+    const interval = setInterval(checkTableStatus, 5000);
+    return () => clearInterval(interval);
   }, [tableNumber, sessionId]);
 
   // Datos del menú
@@ -563,16 +587,59 @@ const Cafe = ({ onBack }) => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-black via-zinc-900 to-amber-950">
+       {/* Modal de mesa desactivada */}
+      {tableDeactivated && (
+        <div className="fixed inset-0 bg-black/95 backdrop-blur-sm z-[60] flex items-center justify-center p-4">
+          <div className="bg-gradient-to-br from-zinc-900 to-black border-2 border-red-600 rounded-2xl p-8 max-w-md w-full">
+            <div className="text-center">
+              <div className="w-16 h-16 bg-red-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                <AlertCircle className="w-10 h-10 text-red-500" />
+              </div>
+              <h2 className="text-2xl font-bold text-red-400 mb-4">Mesa Desactivada</h2>
+              <p className="text-amber-200/70 mb-6">
+                El administrador ha desactivado esta mesa. Tu sesión ha finalizado.
+              </p>
+              <button
+                onClick={() => {
+                  setTableDeactivated(false);
+                  setTableNumber(null);
+                  setSessionId(null);
+                  setSessionName('');
+                  setTableInfo(null);
+                  setCart([]);
+                  setShowTableModal(true);
+                }}
+                className="w-full py-4 bg-gradient-to-r from-amber-600 to-orange-600 text-black rounded-xl font-bold hover:shadow-xl hover:shadow-amber-600/50 transition-all"
+              >
+                Entendido
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Modal de selección/unión de mesa */}
       {showTableModal && (
         <div className="fixed inset-0 bg-black/90 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-gradient-to-br from-zinc-900 to-black border-2 border-amber-600 rounded-2xl p-8 max-w-md w-full">
-            {!showJoinOptions ? (
+           {!showJoinOptions ? (
               <>
+                <div className="flex items-center justify-between mb-6">
+                  <button
+                    onClick={onBack}
+                    className="p-2 hover:bg-amber-900/20 rounded-lg transition"
+                    title="Volver al inicio"
+                  >
+                    <svg className="w-6 h-6 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                    </svg>
+                  </button>
+                  <Coffee className="w-12 h-12 sm:w-16 sm:h-16 text-amber-500" />
+                  <div className="w-6"></div>
+                </div>
                 <div className="text-center mb-6">
-                  <Coffee className="w-16 h-16 text-amber-500 mx-auto mb-4" />
-                  <h2 className="text-3xl font-bold text-amber-400 mb-2">Bienvenido a Valhalla Café</h2>
-                  <p className="text-amber-200/70">Indica tu mesa para comenzar</p>
+                  <h2 className="text-2xl sm:text-3xl font-bold text-amber-400 mb-2">Bienvenido a Valhalla Café</h2>
+                  <p className="text-sm sm:text-base text-amber-200/70">Indica tu mesa para comenzar</p>
                 </div>
                 
                 <div className="space-y-4">
@@ -766,16 +833,16 @@ const Cafe = ({ onBack }) => {
 
       {/* Header */}
       <header className="sticky top-0 z-40 bg-black/80 backdrop-blur-xl border-b border-amber-900/30">
-        <div className="max-w-7xl mx-auto px-4 py-4">
+        <div className="max-w-7xl mx-auto px-2 sm:px-4 py-3 sm:py-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-2 sm:space-x-4">
               <button
                 onClick={onBack}
-                className="px-4 py-2 bg-amber-900/30 text-amber-400 rounded-lg hover:bg-amber-900/50 transition border border-amber-800/50"
+                className="px-2 sm:px-4 py-2 bg-amber-900/30 text-amber-400 rounded-lg hover:bg-amber-900/50 transition border border-amber-800/50 text-sm sm:text-base"
               >
                 ← Volver
               </button>
-              <Coffee className="w-8 h-8 text-amber-500" />
+              <Coffee className="w-6 h-6 sm:w-8 sm:h-8 text-amber-500" />
               <div>
                 <h1 className="text-2xl font-bold text-amber-400">Valhalla Café</h1>
                 <div className="flex items-center space-x-2">
@@ -873,8 +940,8 @@ const Cafe = ({ onBack }) => {
       </header>
 
       {/* Categorías Principales */}
-      <div className="sticky top-[72px] z-30 bg-gradient-to-b from-black/95 to-transparent backdrop-blur-md py-6 border-b border-amber-900/20">
-        <div className="max-w-7xl mx-auto px-4">
+      <div className="sticky top-[60px] sm:top-[72px] z-30 bg-gradient-to-b from-black/95 to-transparent backdrop-blur-md py-4 sm:py-6 border-b border-amber-900/20">
+        <div className="max-w-7xl mx-auto px-2 sm:px-4">
           <div className="grid grid-cols-2 gap-4">
             {categories.map(cat => (
               <button
@@ -910,14 +977,14 @@ const Cafe = ({ onBack }) => {
       </div>
 
       {/* Grid de productos */}
-      <main className="max-w-7xl mx-auto px-4 py-8">
+      <main className="max-w-7xl mx-auto px-2 sm:px-4 py-4 sm:py-8">
         {filteredItems.length === 0 ? (
           <div className="text-center py-20">
             <Coffee className="w-16 h-16 text-amber-600/30 mx-auto mb-4" />
             <p className="text-amber-200/50 text-lg">No se encontraron productos</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
             {filteredItems.map(item => (
               <div
                 key={item.id}

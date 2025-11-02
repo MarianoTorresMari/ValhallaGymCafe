@@ -174,6 +174,31 @@ const AdminPanel = ({ onBack }) => {
       alert('Error al atender la notificación');
     }
   };
+  const handleDeactivateTable = async (tableNumber) => {
+    if (!window.confirm(`¿Estás seguro de desactivar la Mesa ${tableNumber}?\n\nTodos los usuarios de esta mesa serán desconectados.`)) {
+      return;
+    }
+
+    try {
+      console.log('🚫 Desactivando mesa:', tableNumber);
+      const tableKey = `table_${tableNumber}_info`;
+      const result = await window.storage.get(tableKey, true);
+      
+      if (result && result.value) {
+        const tableData = JSON.parse(result.value);
+        const updatedTable = { ...tableData, status: 'deactivated', deactivatedAt: Date.now() };
+        
+        await window.storage.set(tableKey, JSON.stringify(updatedTable), true);
+        console.log('✅ Mesa desactivada exitosamente');
+        
+        alert(`Mesa ${tableNumber} desactivada. Los usuarios han sido notificados.`);
+        await loadData();
+      }
+    } catch (error) {
+      console.error('❌ Error al desactivar la mesa:', error);
+      alert('Error al desactivar la mesa. Intenta nuevamente.');
+    }
+  };
 
   const formatTime = (timestamp) => {
     const date = new Date(timestamp);
@@ -251,8 +276,8 @@ const AdminPanel = ({ onBack }) => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-black via-zinc-900 to-amber-950">
       <header className="sticky top-0 z-40 bg-black/90 backdrop-blur-xl border-b border-amber-900/30">
-        <div className="max-w-7xl mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
+        <div className="max-w-7xl mx-auto px-2 sm:px-4 py-3 sm:py-4">
+          <div className="flex items-center justify-between flex-wrap gap-2">
             <div className="flex items-center space-x-4">
               <button
                 onClick={onBack}
@@ -279,8 +304,8 @@ const AdminPanel = ({ onBack }) => {
         </div>
       </header>
 
-      <div className="max-w-7xl mx-auto px-4 py-6">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="max-w-7xl mx-auto px-2 sm:px-4 py-4 sm:py-6">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4">
           <div className="bg-gradient-to-br from-zinc-900 to-black border border-amber-800/30 rounded-xl p-6">
             <div className="flex items-center justify-between mb-2">
               <ShoppingCart className="w-8 h-8 text-amber-500" />
@@ -315,8 +340,8 @@ const AdminPanel = ({ onBack }) => {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4">
-        <div className="flex space-x-2 border-b border-amber-800/30">
+      <div className="max-w-7xl mx-auto px-2 sm:px-4">
+        <div className="flex space-x-2 border-b border-amber-800/30 overflow-x-auto scrollbar-hide">
           {[
             { id: 'pedidos', label: 'Pedidos', icon: <ShoppingCart className="w-4 h-4" />, count: stats.pendingOrders },
             { id: 'notificaciones', label: 'Notificaciones', icon: <Bell className="w-4 h-4" />, count: stats.activeNotifications },
@@ -503,8 +528,8 @@ const AdminPanel = ({ onBack }) => {
           </div>
         )}
 
-        {activeTab === 'mesas' && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+       {activeTab === 'mesas' && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {tables.length === 0 ? (
               <div className="col-span-full text-center py-20 bg-zinc-900/50 rounded-xl border border-amber-800/30">
                 <Users className="w-16 h-16 text-amber-600/30 mx-auto mb-4" />
@@ -514,12 +539,16 @@ const AdminPanel = ({ onBack }) => {
               tables.map(table => (
                 <div
                   key={table.tableNumber}
-                  className="bg-gradient-to-br from-zinc-900 to-black border border-amber-800/30 rounded-xl p-6 hover:border-amber-600/50 transition-all"
+                  className="bg-gradient-to-br from-zinc-900 to-black border border-amber-800/30 rounded-xl p-4 sm:p-6 hover:border-amber-600/50 transition-all"
                 >
                   <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-2xl font-bold text-amber-400">Mesa {table.tableNumber}</h3>
-                    <span className="px-3 py-1 bg-green-500/20 text-green-400 rounded-full text-xs font-bold border border-green-500/30">
-                      ACTIVA
+                    <h3 className="text-xl sm:text-2xl font-bold text-amber-400">Mesa {table.tableNumber}</h3>
+                    <span className={`px-3 py-1 rounded-full text-xs font-bold border ${
+                      table.status === 'deactivated' 
+                        ? 'bg-red-500/20 text-red-400 border-red-500/30'
+                        : 'bg-green-500/20 text-green-400 border-green-500/30'
+                    }`}>
+                      {table.status === 'deactivated' ? 'DESACTIVADA' : 'ACTIVA'}
                     </span>
                   </div>
 
@@ -534,7 +563,7 @@ const AdminPanel = ({ onBack }) => {
                     </div>
                   </div>
 
-                  <div className="bg-black/30 rounded-lg p-3 space-y-2">
+                  <div className="bg-black/30 rounded-lg p-3 space-y-2 mb-4">
                     {table.sessions.map((session, idx) => (
                       <div key={idx} className="flex items-center justify-between text-sm">
                         <div className="flex items-center space-x-2">
@@ -548,6 +577,22 @@ const AdminPanel = ({ onBack }) => {
                       </div>
                     ))}
                   </div>
+
+                  {table.status !== 'deactivated' && (
+                    <button
+                      onClick={() => handleDeactivateTable(table.tableNumber)}
+                      className="w-full py-3 bg-red-900/30 text-red-400 rounded-lg font-semibold hover:bg-red-900/50 transition border border-red-800/50 flex items-center justify-center space-x-2"
+                    >
+                      <XCircle className="w-5 h-5" />
+                      <span>Desactivar Mesa</span>
+                    </button>
+                  )}
+
+                  {table.status === 'deactivated' && (
+                    <div className="text-center text-red-400 text-sm py-2">
+                      Desactivada {formatTime(table.deactivatedAt)}
+                    </div>
+                  )}
 
                   <div className="mt-4 text-xs text-amber-200/40 text-center">
                     Expira {formatTime(table.expiresAt)}
