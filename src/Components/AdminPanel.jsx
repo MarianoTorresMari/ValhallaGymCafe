@@ -29,13 +29,15 @@ const AdminPanel = ({ onBack }) => {
     }
   };
 
-  // Cargar datos del storage
+// Cargar datos del storage
   const loadData = async () => {
     setIsRefreshing(true);
     try {
-       console.log('🔍 Cargando datos del storage...');
+      console.log('🔄 AdminPanel: Cargando datos del storage...');
+      
+      // Listar todas las claves compartidas
       const allKeys = await window.storage.list('', true);
-       console.log('📋 Keys encontradas:', allKeys);
+      console.log('📋 Keys encontradas:', allKeys);
       
       if (allKeys && allKeys.keys) {
         const ordersList = [];
@@ -44,30 +46,46 @@ const AdminPanel = ({ onBack }) => {
 
         for (const key of allKeys.keys) {
           try {
+            console.log(`🔍 Procesando key: ${key}`);
             const result = await window.storage.get(key, true);
-            if (!result) continue;
+            
+            if (!result || !result.value) {
+              console.log(`⚠️ Key ${key} sin valor`);
+              continue;
+            }
 
             const data = JSON.parse(result.value);
+            console.log(`📦 Datos de ${key}:`, data);
 
             if (key.startsWith('order_')) {
               ordersList.push({ ...data, id: key });
+              console.log('✅ Pedido agregado:', key);
             } else if (key.startsWith('notification_')) {
               notificationsList.push({ ...data, id: key });
+              console.log('✅ Notificación agregada:', key);
             } else if (key.startsWith('table_') && key.endsWith('_info')) {
               tablesMap.set(data.tableNumber, data);
+              console.log('✅ Mesa agregada:', data.tableNumber);
             }
           } catch (error) {
-            console.error(`Error procesando ${key}:`, error);
+            console.error(`❌ Error procesando ${key}:`, error);
           }
         }
 
+        // Ordenar por timestamp (más recientes primero)
         ordersList.sort((a, b) => b.timestamp - a.timestamp);
         notificationsList.sort((a, b) => b.timestamp - a.timestamp);
+
+        console.log('📊 Resumen de datos cargados:');
+        console.log(`- Pedidos: ${ordersList.length}`);
+        console.log(`- Notificaciones: ${notificationsList.length}`);
+        console.log(`- Mesas: ${tablesMap.size}`);
 
         setOrders(ordersList);
         setNotifications(notificationsList);
         setTables(Array.from(tablesMap.values()));
 
+        // Calcular estadísticas
         const pendingOrders = ordersList.filter(o => o.status === 'pendiente').length;
         const totalRevenue = ordersList
           .filter(o => o.status === 'completado')
@@ -80,31 +98,44 @@ const AdminPanel = ({ onBack }) => {
           totalRevenue,
           activeNotifications
         });
+
+        console.log('✅ Datos cargados exitosamente');
+      } else {
+        console.log('⚠️ No se encontraron keys');
       }
     } catch (error) {
-      console.error('Error cargando datos:', error);
+      console.error('❌ Error cargando datos:', error);
     } finally {
       setIsRefreshing(false);
     }
   };
-
-  useEffect(() => {
+ useEffect(() => {
     if (isAuthenticated) {
+      console.log('👤 Usuario autenticado, iniciando carga de datos');
       loadData();
-      const interval = setInterval(loadData, 30000);
+      // Actualizar cada 10 segundos (más frecuente para detectar cambios)
+      const interval = setInterval(() => {
+        console.log('⏰ Actualización automática de datos');
+        loadData();
+      }, 10000);
       return () => clearInterval(interval);
     }
   }, [isAuthenticated]);
-
-  const handleCompleteOrder = async (orderId) => {
+ const handleCompleteOrder = async (orderId) => {
     try {
+      console.log('✅ Completando pedido:', orderId);
       const order = orders.find(o => o.id === orderId);
-      if (!order) return;
+      if (!order) {
+        console.error('❌ Pedido no encontrado:', orderId);
+        return;
+      }
 
       const updatedOrder = { ...order, status: 'completado', completedAt: Date.now() };
       await window.storage.set(orderId, JSON.stringify(updatedOrder), true);
+      console.log('✅ Pedido actualizado a completado');
       await loadData();
     } catch (error) {
+      console.error('❌ Error al actualizar el pedido:', error);
       alert('Error al actualizar el pedido');
     }
   };

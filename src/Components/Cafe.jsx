@@ -31,23 +31,25 @@ const Cafe = ({ onBack }) => {
     return `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
   };
 
- // Verificar estado de la mesa
+// Verificar estado de la mesa
   const checkTableStatus = async (tableNum) => {
     try {
       const result = await window.storage.get(`table_${tableNum}_info`, true);
+      console.log('✅ Mesa encontrada:', tableNum, result);
       if (result && result.value) {
         return JSON.parse(result.value);
       }
       return null;
     } catch (error) {
       // Si la clave no existe, window.storage.get lanza un error
-      console.log(`Mesa ${tableNum} no existe o error:`, error.message);
+      console.log(`ℹ️ Mesa ${tableNum} no existe (normal si es nueva)`);
       return null;
     }
   };
 
-  // Crear nueva mesa
+ // Crear nueva mesa
   const createNewTable = async (tableNum, name) => {
+    console.log('🔨 Creando nueva mesa:', tableNum, name);
     const newSessionId = generateSessionId();
     const tableData = {
       tableNumber: tableNum,
@@ -69,18 +71,26 @@ const Cafe = ({ onBack }) => {
 
     try {
       await window.storage.set(`table_${tableNum}_info`, JSON.stringify(tableData), true);
+      console.log('✅ Mesa creada exitosamente');
+      
+      // VERIFICAR que se guardó
+      const verification = await window.storage.get(`table_${tableNum}_info`, true);
+      console.log('🔍 Verificación de guardado:', verification);
+      
       setTableNumber(tableNum);
       setSessionId(newSessionId);
       setSessionName(name || 'Principal');
       setTableInfo(tableData);
       setShowTableModal(false);
     } catch (error) {
+      console.error('❌ Error al crear la mesa:', error);
       alert('Error al crear la mesa. Intenta nuevamente.');
     }
   };
 
-  // Unirse a mesa existente
+ // Unirse a mesa existente
   const joinExistingTable = async (tableNum, name) => {
+    console.log('👥 Uniéndose a mesa existente:', tableNum);
     const existingTable = await checkTableStatus(tableNum);
     if (!existingTable) {
       alert('La mesa ya no está disponible.');
@@ -103,12 +113,19 @@ const Cafe = ({ onBack }) => {
 
     try {
       await window.storage.set(`table_${tableNum}_info`, JSON.stringify(updatedTable), true);
+      console.log('✅ Unido a mesa exitosamente');
+      
+      // VERIFICAR que se guardó
+      const verification = await window.storage.get(`table_${tableNum}_info`, true);
+      console.log('🔍 Verificación:', verification);
+      
       setTableNumber(tableNum);
       setSessionId(newSessionId);
       setSessionName(name || `Invitado ${existingTable.sessions.length}`);
       setTableInfo(updatedTable);
       setShowTableModal(false);
     } catch (error) {
+      console.error('❌ Error al unirse a la mesa:', error);
       alert('Error al unirse a la mesa. Intenta nuevamente.');
     }
   };
@@ -434,9 +451,10 @@ const Cafe = ({ onBack }) => {
     setIsCartOpen(false);
   };
 
-  const handleConfirmOrder = async () => {
+    const handleConfirmOrder = async () => {
     if (!paymentMethod) return;
 
+    console.log('📦 Confirmando pedido...');
     const order = {
       tableNumber,
       sessionId,
@@ -450,11 +468,14 @@ const Cafe = ({ onBack }) => {
 
     try {
       const orderId = `order_${tableNumber}_${sessionId}_${Date.now()}`;
+      console.log('💾 Guardando pedido con ID:', orderId);
+      console.log('📋 Datos del pedido:', order);
+      
       await window.storage.set(orderId, JSON.stringify(order), true);
-       // DEBUG: Verificar que se guardó
-    console.log('✅ Pedido guardado:', orderId);
-    const verify = await window.storage.get(orderId, true);
-    console.log('✅ Verificación:', verify);
+      
+      // VERIFICAR que se guardó correctamente
+      const verify = await window.storage.get(orderId, true);
+      console.log('✅ Pedido guardado y verificado:', verify);
 
       alert(`¡Pedido confirmado! 🎉\n\n${sessionName}\nMesa: ${tableNumber}\nTotal: $${getTotalPrice().toLocaleString()}\nPago: ${paymentMethod === 'transfer' ? 'Transferencia' : 'Efectivo'}\n\nTu pedido llegará pronto.`);
 
@@ -462,8 +483,8 @@ const Cafe = ({ onBack }) => {
       setPaymentMethod(null);
       setShowPaymentModal(false);
     } catch (error) {
+      console.error('❌ Error al confirmar el pedido:', error);
       alert('Error al confirmar el pedido. Por favor intenta nuevamente.');
-      console.error('Error:', error);
     }
   };
 
@@ -473,13 +494,14 @@ const Cafe = ({ onBack }) => {
     return (Date.now() - lastNotificationTime) >= tenMinutes;
   };
 
-  const handleSendNotification = async (type) => {
+   const handleSendNotification = async (type) => {
     if (!canSendNotification()) {
       const remainingTime = Math.ceil((10 * 60 * 1000 - (Date.now() - lastNotificationTime)) / 60000);
       alert(`⏰ Debes esperar ${remainingTime} minuto(s) antes de enviar otra notificación.`);
       return;
     }
 
+    console.log('🔔 Enviando notificación:', type);
     const notification = {
       tableNumber,
       sessionId,
@@ -491,10 +513,16 @@ const Cafe = ({ onBack }) => {
 
     try {
       const notificationId = `notification_${tableNumber}_${sessionId}_${Date.now()}`;
+      console.log('💾 Guardando notificación con ID:', notificationId);
+      
       await window.storage.set(notificationId, JSON.stringify(notification), true);
       
+      // VERIFICAR que se guardó
+      const verify = await window.storage.get(notificationId, true);
+      console.log('✅ Notificación guardada y verificada:', verify);
+      
       const currentTime = Date.now();
-      await window.storage.set(`notification_time_${tableNumber}_${sessionId}`, currentTime.toString());
+      await window.storage.set(`notification_time_${tableNumber}_${sessionId}`, currentTime.toString(), true);
       setLastNotificationTime(currentTime);
 
       setNotificationMessage(
@@ -510,8 +538,8 @@ const Cafe = ({ onBack }) => {
       }, 5000);
 
     } catch (error) {
+      console.error('❌ Error al enviar la notificación:', error);
       alert('Error al enviar la notificación. Por favor intenta nuevamente.');
-      console.error('Error:', error);
     }
   };
 
