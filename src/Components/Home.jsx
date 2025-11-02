@@ -1,10 +1,19 @@
 import { useState } from 'react';
 
-function Home({ onSelectGym, onSelectCafe }) {
+function Home({ onSelectGym, onSelectCafe, onSelectAdmin }) {
+
   const [hoveredCard, setHoveredCard] = useState(null);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-black via-zinc-900 to-amber-950 flex flex-col items-center justify-center p-4">
+      {/* Botón de admin - esquina superior derecha */}
+      <button
+        onClick={onSelectAdmin}
+        className="fixed top-4 right-4 p-3 bg-zinc-900/50 text-amber-400 rounded-lg hover:bg-zinc-800/50 transition border border-amber-800/50"
+        title="Panel de Administración"
+      >
+        🔐
+      </button>
       {/* Logo y Título */}
       <div className="text-center mb-12 animate-fade-in">
         <div className="mb-6 flex justify-center">
