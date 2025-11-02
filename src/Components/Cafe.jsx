@@ -33,6 +33,12 @@ const Cafe = ({ onBack }) => {
 
 // Verificar estado de la mesa
   const checkTableStatus = async (tableNum) => {
+    if (!window.storage) {
+      console.error('❌ window.storage no está disponible');
+      alert('Error: Sistema de almacenamiento no disponible. Por favor recarga la página.');
+      return null;
+    }
+    
     try {
       const result = await window.storage.get(`table_${tableNum}_info`, true);
       console.log('✅ Mesa encontrada:', tableNum, result);
@@ -451,8 +457,13 @@ const Cafe = ({ onBack }) => {
     setIsCartOpen(false);
   };
 
-    const handleConfirmOrder = async () => {
+  const handleConfirmOrder = async () => {
     if (!paymentMethod) return;
+    
+    if (!window.storage) {
+      alert('Error: Sistema de almacenamiento no disponible.');
+      return;
+    }
 
     console.log('📦 Confirmando pedido...');
     const order = {
@@ -498,6 +509,11 @@ const Cafe = ({ onBack }) => {
     if (!canSendNotification()) {
       const remainingTime = Math.ceil((10 * 60 * 1000 - (Date.now() - lastNotificationTime)) / 60000);
       alert(`⏰ Debes esperar ${remainingTime} minuto(s) antes de enviar otra notificación.`);
+      return;
+    }
+
+    if (!window.storage) {
+      alert('Error: Sistema de almacenamiento no disponible.');
       return;
     }
 

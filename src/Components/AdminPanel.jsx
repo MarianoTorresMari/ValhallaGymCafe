@@ -31,6 +31,13 @@ const AdminPanel = ({ onBack }) => {
 
 // Cargar datos del storage
   const loadData = async () => {
+    if (!window.storage) {
+      console.error('❌ window.storage no está disponible');
+      alert('Error: Sistema de almacenamiento no disponible.');
+      setIsRefreshing(false);
+      return;
+    }
+    
     setIsRefreshing(true);
     try {
       console.log('🔄 AdminPanel: Cargando datos del storage...');
