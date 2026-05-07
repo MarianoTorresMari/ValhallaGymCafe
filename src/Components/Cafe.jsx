@@ -89,6 +89,14 @@ const Cafe = ({ onBack }) => {
       setSessionId(newSessionId);
       setSessionName(name || 'Principal');
       setTableInfo(tableData);
+      await swal.fire({
+        icon: 'success',
+        title: `Mesa ${tableNum} creada`,
+        text: `Bienvenido${name ? `, ${name}` : ''}! Tu mesa está lista.`,
+        timer: 2000,
+        timerProgressBar: true,
+        showConfirmButton: false,
+      });
       setShowTableModal(false);
     } catch (error) {
       console.error('Error al crear la mesa:', error);
