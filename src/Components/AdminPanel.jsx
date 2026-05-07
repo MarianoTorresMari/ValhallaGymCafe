@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Coffee, Bell, ShoppingCart, Users, DollarSign, Check, X, Clock, RefreshCw, CheckCircle, XCircle, LogIn, UtensilsCrossed, Search, Save } from 'lucide-react';
+import { Coffee, Bell, ShoppingCart, Users, DollarSign, Check, X, Clock, RefreshCw, CheckCircle, XCircle, LogIn, UtensilsCrossed, Search, Save, Package } from 'lucide-react';
 import swal from '../utils/swal';
 import {
   subscribeToOrders,
@@ -626,10 +626,12 @@ const AdminPanel = ({ onBack }) => {
                       const currentPrice = edit.price !== undefined ? edit.price : (item.price ?? '');
                       const currentPrice2 = edit.price2 !== undefined ? edit.price2 : (item.price2 ?? '');
                       const currentDescription = edit.description !== undefined ? edit.description : (item.description ?? '');
+                      const currentStock = edit.stock !== undefined ? edit.stock : (item.stock ?? 0);
                       const hasChanges =
                         (edit.price !== undefined && edit.price !== (item.price ?? '')) ||
                         (edit.price2 !== undefined && edit.price2 !== (item.price2 ?? '')) ||
-                        (edit.description !== undefined && edit.description !== (item.description ?? ''));
+                        (edit.description !== undefined && edit.description !== (item.description ?? '')) ||
+                        (edit.stock !== undefined && edit.stock !== (item.stock ?? 0));
 
                       return (
                         <div
@@ -709,6 +711,34 @@ const AdminPanel = ({ onBack }) => {
                               />
                             </div>
 
+                            <div className="bg-black/30 border border-amber-800/30 rounded-lg p-3">
+                              <div className="flex items-center justify-between mb-2">
+                                <div className="flex items-center gap-1.5">
+                                  <Package className="w-3.5 h-3.5 text-amber-400/70" />
+                                  <label className="text-xs text-amber-200/50 font-medium">Stock disponible</label>
+                                </div>
+                                <span className={`text-xs font-bold px-2 py-0.5 rounded-full border ${
+                                  currentStock === 0
+                                    ? 'bg-red-500/20 text-red-400 border-red-500/30'
+                                    : currentStock <= 5
+                                      ? 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30'
+                                      : 'bg-green-500/20 text-green-400 border-green-500/30'
+                                }`}>
+                                  {currentStock === 0 ? 'Sin stock' : currentStock <= 5 ? 'Stock bajo' : 'En stock'}
+                                </span>
+                              </div>
+                              <input
+                                type="number"
+                                min={0}
+                                value={currentStock}
+                                onChange={(e) => {
+                                  const val = Math.max(0, parseInt(e.target.value) || 0);
+                                  setMenuEdits(prev => ({ ...prev, [item.id]: { ...prev[item.id], stock: val } }));
+                                }}
+                                className="w-full px-3 py-2 bg-black/30 border border-amber-800/30 rounded-lg text-amber-100 text-center text-lg font-bold focus:outline-none focus:border-amber-600"
+                              />
+                            </div>
+
                             {hasChanges && (
                               <button
                                 onClick={async () => {
@@ -717,6 +747,7 @@ const AdminPanel = ({ onBack }) => {
                                     if (edit.price !== undefined) updates.price = edit.price === '' ? null : edit.price;
                                     if (edit.price2 !== undefined) updates.price2 = edit.price2 === '' ? null : edit.price2;
                                     if (edit.description !== undefined) updates.description = edit.description;
+                                    if (edit.stock !== undefined) updates.stock = edit.stock;
                                     await setMenuItem(item.id, updates);
                                     setMenuEdits(prev => {
                                       const next = { ...prev };
